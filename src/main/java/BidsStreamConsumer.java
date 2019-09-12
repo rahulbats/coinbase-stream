@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class BidsStreamConsumer {
     public static void main(String args[]){
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "cb-transaction-streams");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "cb-transactions-streams");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -40,8 +40,8 @@ public class BidsStreamConsumer {
                 return new NormalizedTransaction(sequence, "ask",Double.parseDouble(bid[0]), Double.parseDouble(bid[1]), Integer.parseInt( bid[2]));
             }).collect(Collectors.toList()));
             return normalizedTransactions;
-        })//.through("coinbase-messages-with-array", Produced.with(Serdes.String(), Serdes.serdeFrom(new NormalizedListSerializer(), new NormalizedListDeserializer())))
-            .flatMapValues(value->value)//.through("coinbase_messages-without-array", Produced.with(Serdes.String(), Serdes.serdeFrom(new NormalizedSerializer(), new NormalizedDeserializer())))
+        }).through("coinbase-messages-with-array", Produced.with(Serdes.String(), Serdes.serdeFrom(new NormalizedListSerializer(), new NormalizedListDeserializer())))
+            .flatMapValues(value->value).through("coinbase_messages-without-array", Produced.with(Serdes.String(), Serdes.serdeFrom(new NormalizedSerializer(), new NormalizedDeserializer())))
                 .branch((key, value) -> value.getTransactionType().equals("bid"),(key, value) -> value.getTransactionType().equals("ask") );
 
         transactionKStream[0]
@@ -52,9 +52,9 @@ public class BidsStreamConsumer {
                 .mapValues(value -> value.toString())
                 .to("coinbase_asks");
 
-        KStream<String, NormalizedTransaction> keyed = transactionKStream[0].map(((key, value) -> new KeyValue<String, NormalizedTransaction>(""+value.getSequence(), value)));
+       // KStream<String, NormalizedTransaction> keyed = transactionKStream[0].map(((key, value) -> new KeyValue<String, NormalizedTransaction>(""+value.getSequence(), value)));
 
-        KTable<String, Long> tables = keyed.groupByKey().count();
+       // KTable<String, Long> tables = keyed.groupByKey().count();
 
 
         KafkaStreams streams = new KafkaStreams(builder.build(), props);

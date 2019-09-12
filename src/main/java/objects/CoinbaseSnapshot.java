@@ -1,5 +1,8 @@
 package objects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class CoinbaseSnapshot {
     private long sequence;
     private String[][] bids = new String[50][3];
@@ -31,6 +34,14 @@ public class CoinbaseSnapshot {
     }
 
 
+    public String toString(){
 
+        try {
+            return new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }
